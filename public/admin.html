@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGC Admission — Command Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#7A1B35;
+    --ink-deep:#14171F;
+    --gold:#A81F3D;
+    --paper:#F7F2E7;
+    --card:#FFFFFF;
+    --charcoal:#2B2622;
+    --muted:#6B7280;
+    --border:#E6DFCC;
+    --row-hover:#FBF8F0;
+    --hot:#B4231F;
+    --hot-bg:#FBE4E2;
+    --warm:#B4720E;
+    --warm-bg:#FBEED9;
+    --cold:#3B5B8C;
+    --cold-bg:#E4EAF3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--charcoal);
+    min-height:100vh;
+  }
+
+  header{
+    background:linear-gradient(120deg,var(--ink) 0%,var(--ink-deep) 100%);
+    color:#fff;
+    padding:26px 32px 30px;
+  }
+  header .title-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-size:23px;
+    margin:0;
+    font-weight:600;
+  }
+  header .badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.25);
+    padding:3px 9px;
+    border-radius:20px;
+  }
+  header p{
+    margin:6px 0 0;
+    color:#D9CDD3;
+    font-size:13px;
+  }
+
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px 60px;
+  }
+
+  /* ---- Auth gate ---- */
+  #gate{
+    max-width:380px;
+    margin:90px auto;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:32px;
+    text-align:center;
+    box-shadow:0 20px 45px rgba(20,23,31,0.08);
+  }
+  #gate .icon{
+    width:44px;height:44px;
+    border-radius:50%;
+    background:var(--ink);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;
+    font-size:18px;
+  }
+  #gate h2{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    margin:0 0 6px;
+  }
+  #gate p{color:var(--muted);font-size:13px;margin:0 0 20px;}
+  #gate input{
+    width:100%;
+    padding:11px 14px;
+    border-radius:9px;
+    border:1.5px solid var(--border);
+    font-size:14px;
+    margin-bottom:12px;
+    font-family:'Inter',sans-serif;
+  }
+  #gate input:focus{outline:none;border-color:var(--ink);}
+  #gate button, .btn{
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    padding:11px 22px;
+    border-radius:9px;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:opacity .15s;
+  }
+  #gate button:hover, .btn:hover{opacity:.9;}
+  #gate-error{color:var(--hot);font-size:12.5px;margin-top:10px;min-height:16px;}
+
+  /* ---- Dashboard ---- */
+  #dashboard{display:none;padding-top:24px;}
+
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .stat-card .num{
+    font-family:'Fraunces',serif;
+    font-size:28px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1;
+  }
+  .stat-card .label{
+    font-size:11.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin-top:6px;
+  }
+  .stat-card.hot .num{color:var(--hot);}
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:4px;
+  }
+  .tab-btn{
+    border:none;
+    background:transparent;
+    padding:8px 16px;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    display:flex;align-items:center;gap:6px;
+  }
+  .tab-btn.active{background:var(--ink);color:#fff;}
+  .tab-btn .count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    opacity:.85;
+  }
+
+  .right-tools{display:flex;gap:8px;align-items:center;}
+  #search-input{
+    padding:8px 13px;
+    border-radius:8px;
+    border:1.5px solid var(--border);
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    width:200px;
+  }
+  #search-input:focus{outline:none;border-color:var(--ink);}
+  #refresh-btn{padding:8px 16px;font-size:13px;}
+
+  .table-wrap{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:#F4EFE2;}
+  th{
+    text-align:left;
+    padding:11px 16px;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    font-weight:700;
+    white-space:nowrap;
+  }
+  td{
+    padding:12px 16px;
+    font-size:13px;
+    border-top:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tbody tr:hover{background:var(--row-hover);}
+  td.name{font-weight:600;color:var(--ink-deep);}
+  td.mono{font-family:'JetBrains Mono',monospace;font-size:12px;}
+  td a{color:var(--ink);text-decoration:none;}
+  td a:hover{text-decoration:underline;}
+  td.time{color:var(--muted);font-size:12px;}
+
+  .lead-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .lead-badge.hot{background:var(--hot-bg);color:var(--hot);}
+  .lead-badge.warm{background:var(--warm-bg);color:var(--warm);}
+  .lead-badge.cold{background:var(--cold-bg);color:var(--cold);}
+  .lead-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  .score-bar-wrap{display:flex;align-items:center;gap:8px;}
+  .score-bar{
+    width:60px;height:6px;border-radius:4px;
+    background:var(--border);
+    overflow:hidden;
+  }
+  .score-bar-fill{height:100%;border-radius:4px;}
+  .score-num{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);}
+
+  #empty-state{
+    text-align:center;
+    padding:70px 20px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  #empty-state .big{font-size:32px;margin-bottom:10px;}
+
+  @media (max-width:640px){
+    td, th{padding:9px 10px;font-size:12px;}
+    #search-input{width:130px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>AGC Admission — Command Dashboard</h1>
+    <span class="badge">Internal Use Only</span>
+  </div>
+  <p>Leads, applications, and AGC NEST registrations captured by AdmitAgent</p>
+</header>
+
+<main>
+  <div id="gate">
+    <div class="icon">🔒</div>
+    <h2>Admin Access</h2>
+    <p>Enter the admin key to view student data</p>
+    <input id="admin-key-input" type="password" placeholder="Admin key">
+    <button id="unlock-btn">Unlock Dashboard</button>
+    <div id="gate-error"></div>
+  </div>
+
+  <div id="dashboard">
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="toolbar">
+      <div class="tabs" id="tabs"></div>
+      <div class="right-tools">
+        <input id="search-input" type="text" placeholder="Search name or email...">
+        <button id="refresh-btn" class="btn">Refresh</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div id="table-container"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API_BASE = "http://localhost:8000";
+  let adminKey = "";
+  let activeTab = "leads";
+  let data = { leads: [], applications: [], registrations: [] };
+
+  const gate = document.getElementById('gate');
+  const dashboard = document.getElementById('dashboard');
+  const gateError = document.getElementById('gate-error');
+  const keyInput = document.getElementById('admin-key-input');
+  const unlockBtn = document.getElementById('unlock-btn');
+  const refreshBtn = document.getElementById('refresh-btn');
+  const searchInput = document.getElementById('search-input');
+  const tabsEl = document.getElementById('tabs');
+  const tableContainer = document.getElementById('table-container');
+  const statsRow = document.getElementById('stats-row');
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  }
+
+  async function fetchJSON(path) {
+    const res = await fetch(`${API_BASE}${path}`, { headers: { 'x-admin-key': adminKey } });
+    if (res.status === 401) throw new Error('unauthorized');
+    if (!res.ok) throw new Error('server error');
+    return res.json();
+  }
+
+  async function loadAll() {
+    const [leadsRes, appsRes, nestRes] = await Promise.all([
+      fetchJSON('/admin/leads'),
+      fetchJSON('/admin/applications'),
+      fetchJSON('/admin/nest-registrations'),
+    ]);
+    data.leads = leadsRes.leads || [];
+    data.applications = appsRes.applications || [];
+    data.registrations = nestRes.registrations || [];
+  }
+
+  function leadBadge(label, score) {
+    if (!label) return '<span class="lead-badge cold"><span class="dot"></span>Unscored</span>';
+    const cls = label.toLowerCase();
+    return `<span class="lead-badge ${cls}"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  }
+
+  function scoreBar(score) {
+    if (score == null) return '-';
+    const pct = Math.min(100, Math.max(0, score));
+    let color = 'var(--cold)';
+    if (pct >= 70) color = 'var(--hot)';
+    else if (pct >= 45) color = 'var(--warm)';
+    return `<div class="score-bar-wrap">
+      <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      <span class="score-num">${pct.toFixed(0)}</span>
+    </div>`;
+  }
+
+  function renderStats() {
+    const hotCount = data.registrations.filter(r => r.lead_label === 'Hot').length;
+    const stats = [
+      { label: 'Total Leads', num: data.leads.length },
+      { label: 'Applications', num: data.applications.length },
+      { label: 'NEST Registrations', num: data.registrations.length },
+      { label: 'Hot Leads', num: hotCount, hot: true },
+    ];
+    statsRow.innerHTML = stats.map(s => `
+      <div class="stat-card ${s.hot ? 'hot' : ''}">
+        <div class="num">${s.num}</div>
+        <div class="label">${s.label}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderTabs() {
+    const tabs = [
+      { key: 'leads', label: 'Leads', count: data.leads.length },
+      { key: 'applications', label: 'Applications', count: data.applications.length },
+      { key: 'registrations', label: 'NEST Registrations', count: data.registrations.length },
+    ];
+    tabsEl.innerHTML = tabs.map(t => `
+      <button class="tab-btn ${activeTab === t.key ? 'active' : ''}" data-tab="${t.key}">
+        ${t.label} <span class="count">${t.count}</span>
+      </button>
+    `).join('');
+    tabsEl.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => { activeTab = btn.dataset.tab; renderTabs(); renderTable(); });
+    });
+  }
+
+  function matchesSearch(row, query) {
+    if (!query) return true;
+    const haystack = `${row.name || ''} ${row.email || ''}`.toLowerCase();
+    return haystack.includes(query.toLowerCase());
+  }
+
+  function renderTable() {
+    const query = searchInput.value.trim();
+
+    if (activeTab === 'leads') {
+      const rows = data.leads.filter(r => matchesSearch(r, query));
+      renderGenericTable(rows, [
+        { key: 'name', label: 'Name', cls: 'name' },
+        { key: 'mobile', label: 'Mobile', render: r => `<a href="tel:${r.mobile}">${escapeHtml(r.mobile)}</a>` },
+        { key: 'email', label: 'Email', render: r => `<a href="mailto:${r.email}">${escapeHtml(r.email)}</a>` },
+        { key: 'created_at', label: 'Captured', cls: 'time', render: r => formatDate(r.created_at) },
+      ], 'No leads yet — once a student completes the chatbot intro, they\'ll show up here.');
+    }
+
+    if (activeTab === 'applications') {
+      const rows = data.applications.filter(r => matchesSearch(r, query));
+      renderGenericTable(rows, [
+        { key: 'name', label: 'Name', cls: 'name' },
+        { key: 'program', label: 'Program' },
+        { key: 'mobile', label: 'Mobile', render: r => `<a href="tel:${r.mobile}">${escapeHtml(r.mobile)}</a>` },
+        { key: 'email', label: 'Email', render: r => r.email ? `<a href="mailto:${r.email}">${escapeHtml(r.email)}</a>` : '-' },
+        { key: 'category', label: 'Category' },
+        { key: 'meeting_time', label: 'Scheduled Call', render: r => r.meeting_time ? `📅 ${escapeHtml(r.meeting_time)}` : '-' },
+        { key: 'created_at', label: 'Submitted', cls: 'time', render: r => formatDate(r.created_at) },
+      ], 'No applications yet — submissions from the Admission Enquiry Form will appear here.');
+    }
+
+    if (activeTab === 'registrations') {
+      const rows = data.registrations.filter(r => matchesSearch(r, query))
+        .sort((a, b) => (b.lead_score || 0) - (a.lead_score || 0));
+      renderGenericTable(rows, [
+        { key: 'lead_label', label: 'Lead', render: r => leadBadge(r.lead_label, r.lead_score) },
+        { key: 'lead_score', label: 'Score', render: r => scoreBar(r.lead_score) },
+        { key: 'name', label: 'Name', cls: 'name' },
+        { key: 'course', label: 'Course' },
+        { key: 'percentage', label: '12th %', render: r => r.percentage != null ? `${r.percentage}%` : '-' },
+        { key: 'mobile', label: 'Mobile', render: r => `<a href="tel:${r.mobile}">${escapeHtml(r.mobile)}</a>` },
+        { key: 'email', label: 'Email', render: r => `<a href="mailto:${r.email}">${escapeHtml(r.email)}</a>` },
+        { key: 'username', label: 'Username', cls: 'mono' },
+        { key: 'created_at', label: 'Registered', cls: 'time', render: r => formatDate(r.created_at) },
+      ], 'No AGC NEST registrations yet — students who register via the chatbot will show up here.');
+    }
+  }
+
+  function renderGenericTable(rows, columns, emptyMsg) {
+    if (rows.length === 0) {
+      tableContainer.innerHTML = `<div id="empty-state"><div class="big">—</div>${escapeHtml(emptyMsg)}</div>`;
+      return;
+    }
+    const headerHtml = columns.map(c => `<th>${c.label}</th>`).join('');
+    const rowsHtml = rows.map(r => {
+      const cells = columns.map(c => {
+        const content = c.render ? c.render(r) : escapeHtml(r[c.key]);
+        return `<td class="${c.cls || ''}">${content}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    tableContainer.innerHTML = `<table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  }
+
+  async function unlock() {
+    adminKey = keyInput.value.trim();
+    gateError.textContent = "";
+    if (!adminKey) { gateError.textContent = "Please enter the admin key."; return; }
+    unlockBtn.textContent = "Checking...";
+    try {
+      await loadAll();
+      gate.style.display = 'none';
+      dashboard.style.display = 'block';
+      renderStats();
+      renderTabs();
+      renderTable();
+    } catch (err) {
+      gateError.textContent = err.message === 'unauthorized'
+        ? "Invalid admin key."
+        : "Couldn't reach the backend. Is it running?";
+    } finally {
+      unlockBtn.textContent = "Unlock Dashboard";
+    }
+  }
+
+  unlockBtn.addEventListener('click', unlock);
+  keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.textContent = "Refreshing...";
+    try {
+      await loadAll();
+      renderStats();
+      renderTabs();
+      renderTable();
+    } catch (err) {
+      alert("Couldn't refresh: " + err.message);
+    } finally {
+      refreshBtn.textContent = "Refresh";
+    }
+  });
+
+  searchInput.addEventListener('input', renderTable);
+</script>
+
+</body>
+</html>
